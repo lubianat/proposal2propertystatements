@@ -1,9 +1,4 @@
-from wdcuration import render_qs_url
-
-proposal_page = "https://www.wikidata.org/wiki/Wikidata:Property_proposal/Digital_Library_of_Mathematical_Functions_ID"
-property_id = "P11497"
-
-property_proposal = page = """
+page = """
 === {{TranslateThis | anchor = en
 | en = Digital Library of Mathematical Functions ID
 <!-- |xx = property names in some other languages -->
@@ -60,76 +55,10 @@ When it comes to structured information about mathematical functions, {{Q|Q24534
 * {Created as {{P|P11497}} ~~~~ 
 """
 
-
-def convert_infobox_to_dict(property_proposal):
-    property_proposal_items = property_proposal.split("\n|")
-
-    property_proposal_dict = {
-        a.split("=")[0].strip(): a.split("=")[1].strip()
-        for a in property_proposal_items
-        if "=" in a
-    }
-    return property_proposal_dict
-
-
-property_proposal_dict = convert_infobox_to_dict(property_proposal)
-
-clean_up_pairs = [
-    ("{", ""),
-    ("}", ""),
-    ("|", ""),
-    ("QQ", "Q"),
-    ("<nowiki>", ""),
-    ("</nowiki>", ""),
-]
-for pair in clean_up_pairs:
-    property_proposal_dict = {
-        k: v.replace(pair[0], pair[1]) for k, v in property_proposal_dict.items()
-    }
-
-description_box = convert_infobox_to_dict(property_proposal_dict["description"])
-
-qs = f"""
-{property_id}|P1630|"{property_proposal_dict['formatter URL']}"
-{property_id}|P1629|{property_proposal_dict['subject item']}
-{property_proposal_dict['subject item']}|P1687|{property_id}
-{property_id}|P1793|"{property_proposal_dict['allowed values']}"
-{property_id}|P3254|"{proposal_page}"
-{property_id}|P2429|{property_proposal_dict['expected completeness']}
-"""
-
-if property_proposal_dict["distinct values constraint"] == "yes":
-
-    qs += f"""{property_id}|P2302|Q21502410
-"""
-
-for value in [a.strip() for a in property_proposal_dict["see also"].split(",")]:
-    qs += f"""{property_id}|P1659|{value}
-"""
-
 import re
 
-for k, v in property_proposal_dict.items():
-    try:
-        if "example" in k:
-            if "Statement" in v:
-                subject = re.findall("Statement(Q[0-9]*)", v)[0]
-            else:
-                subject = v.split(" → ")[0]
 
-            try:
-                objects = v.split(" → ")[1].split(", ")
-            except IndexError:
-                objects = [v]
+a = re.findall("User:(.*?)\|", page)
 
-            for object in objects:
-                formatted_object = object.split(" ")[-1].replace("]", "")
-                qs += f"""
-{subject}|{property_id}|"{formatted_object}"|S854|"{proposal_page}"
-{property_id}|P1855|{subject}|{property_id}|"{formatted_object}"|S854|"{proposal_page}"
-            """
-    except:
-
-        pass
-
-print(render_qs_url(qs))
+ping = "{{ping|" + "|".join(list(set(a))) + "}}"
+print(ping)
